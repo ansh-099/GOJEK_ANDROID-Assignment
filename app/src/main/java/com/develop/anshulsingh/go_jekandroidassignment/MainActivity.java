@@ -7,13 +7,27 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -23,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
     ImageView ivNoInternet;
     TextView tv1NoInternet,tv2NoInternet;
     Button btnNoInternet;
+    ArrayList<InformationView> infos=new ArrayList<>();
+    ArrayList<ArrayList<SummaryView>> summs=new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +54,11 @@ public class MainActivity extends AppCompatActivity {
         tv2NoInternet = findViewById(R.id.tv2NoInternet);
         btnNoInternet = findViewById(R.id.btnNoInternet);
 
+
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
+        UpdateFeed feed = new UpdateFeed();
+        feed.execute();
         if(isInternetAvailable()){
 
         }else{
@@ -52,20 +70,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if(isInternetAvailable()){
                     Available();
+
                 }
             }
         });
 
-        ArrayList<InformationView> infos=new ArrayList<>();
-        ArrayList<SummaryView> summs=new ArrayList<>();
-
-        summs.add(new SummaryView("ehfe","sd","vs","vds",2,2));
 
 
-        infos.add(new InformationView("dcs",summs));
 
-        SummaryAdapter adapter = new SummaryAdapter(infos);
-        recyclerView.setAdapter(adapter);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -97,4 +109,67 @@ public class MainActivity extends AppCompatActivity {
         ivNoInternet.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
     }
+
+
+    class UpdateFeed extends AsyncTask<Void, Void, Void>{
+
+        // Get Request to update feed in async
+        @Override
+        protected Void doInBackground(Void... voids) {
+            RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+            String url ="https://github-trending-api.now.sh/repositories?language=&since=daily";
+            Log.d("hey","stage1");
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                    new Response.Listener<String>(){
+                        @Override
+                        public void onResponse(String response) {
+                            // Display the first 500 characters of the response string.
+                            try {
+                                JSONArray array = new JSONArray(response);
+
+
+                                Log.d("hey","working");
+                                //Parser
+                                for(int i=0;i<array.length();i++){
+                                    JSONObject obj = (JSONObject) array.get(i);
+                                    String username = obj.getString("name");
+                                    String lang = "";
+                                    if(obj.has("language")){
+                                        lang = obj.getString("language");
+                                    }
+
+                                    String intro = obj.getString("description");
+                                    String imageURL = obj.getString("avatar");
+                                    String title = obj.getString("author");
+                                    Integer stars = obj.getInt("stars");
+                                    Integer folks = obj.getInt("forks");
+                                    summs.add(new ArrayList<SummaryView>());
+                                    summs.get(i).add(new SummaryView(intro,lang,username,imageURL,stars,folks));
+                                    infos.add(new InformationView(title,summs.get(i)));
+                                        SummaryAdapter adapter = new SummaryAdapter(infos);
+                                        recyclerView.setAdapter(adapter);
+                                    adapter.notifyDataSetChanged();
+                                }
+
+
+
+
+                            } catch (JSONException e) {
+                                Log.d("hey", String.valueOf(e));
+                                e.printStackTrace();
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("hey","error");
+                }
+            });
+
+// Add the request to the RequestQueue.
+            queue.add(stringRequest);
+            return null;
+        }
+    }
+
 }

@@ -5,6 +5,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
 import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
 
 public class InformationViewHolder extends GroupViewHolder {
@@ -23,6 +24,7 @@ public class InformationViewHolder extends GroupViewHolder {
 
         tvUserName.setText(info.getTitle());
         tvIntro.setText(info.getItems().get(0).intro);
+        Picasso.get().load(info.getItems().get(0).imageurl).into(ivPerson);
 
     }
 

@@ -6,7 +6,6 @@
         <item name="colorPrimary">#ffffff</item>
         <item name="colorPrimaryDark">#ffffff</item>
         <item name="colorAccent">#ffffff</item>
-        <item name="android:tint">@color/black</item>
 
     </style>
     <style name="AppTheme.NoActionBar">

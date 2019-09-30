@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/toolbar"
+        app:title="f"
+        app:titleTextColor="#ffffff"
+        app:layout_scrollFlags="scroll|enterAlways">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trending"
+            android:textColor="#000000"
+            android:layout_gravity="center"
+            android:id="@+id/toolbar_title" />
+
+    </androidx.appcompat.widget.Toolbar>
+    <View
+        android:background="#e8e8e8"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/recyclerView">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+            <ImageView
+                android:visibility="invisible"
+                android:layout_gravity="center"
+                android:id="@+id/ivNoInternet"
+                android:elevation="3dp"
+                android:background="@mipmap/nointernet_connection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        <TextView
+            android:visibility="invisible"
+            android:id="@+id/tv2NoInternet"
+            android:layout_marginBottom="170dp"
+            android:layout_gravity="center|bottom"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:text="Something Went Wrong.."
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:visibility="invisible"
+            android:id="@+id/tv1NoInternet"
+            android:layout_marginBottom="140dp"
+            android:layout_gravity="center|bottom"
+            android:text="An alien is probably blocking your signal."
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    
+        <Button
+            android:visibility="invisible"
+            android:textColor="#31b057"
+            android:text="RETRY"
+            android:layout_margin="10dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/btn_outlining"
+            android:id="@+id/btnNoInternet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </androidx.cardview.widget.CardView>
+
+
+</LinearLayout>

@@ -7,11 +7,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -26,14 +28,24 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
@@ -46,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeContainer;
     SummaryAdapter adapter;
     UpdateFeed feed;
+    SharedPreferences sharedPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.inflateMenu(R.menu.main_menu);
 
+        sharedPrefs = getSharedPreferences("preff", Context.MODE_PRIVATE);
+
         ivNoInternet = findViewById(R.id.ivNoInternet);
         tv1NoInternet = findViewById(R.id.tv1NoInternet);
         tv2NoInternet = findViewById(R.id.tv2NoInternet);
@@ -65,6 +80,16 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        boolean trig = retriveFromDB();
+        
+        if(trig) {
+            adapter = new SummaryAdapter(infos);
+            recyclerView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+
+        }
+
         feed = new UpdateFeed();
         feed.execute();
 
@@ -76,20 +101,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        if(!trig) {
+            ConnectivityManager mgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo netInfo = mgr.getActiveNetworkInfo();
 
-        ConnectivityManager mgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = mgr.getActiveNetworkInfo();
-
-        if (netInfo != null) {
-            if (netInfo.isConnected()) {
-                // Internet Available
-            }else {
+            if (netInfo != null) {
+                if (netInfo.isConnected()) {
+                    // Internet Available
+                } else {
+                    notAvailable();
+                    //No internet
+                }
+            } else {
                 notAvailable();
                 //No internet
             }
-        } else {
-            notAvailable();
-            //No internet
+
         }
 
 
@@ -164,7 +191,6 @@ public class MainActivity extends AppCompatActivity {
                             try {
                                 JSONArray array = new JSONArray(response);
 
-
                                 Log.d("hey","working");
                                 //Parser
                                 for(int i=0;i<array.length();i++){
@@ -189,6 +215,8 @@ public class MainActivity extends AppCompatActivity {
                                         recyclerView.setAdapter(adapter);
                                     adapter.notifyDataSetChanged();
                                 }
+
+                                storeInDB(infos,summs);
 
 
 
@@ -221,5 +249,59 @@ public class MainActivity extends AppCompatActivity {
 
         swipeContainer.setRefreshing(false);
     }
+
+
+
+    public void storeInDB(ArrayList<InformationView> info,ArrayList<ArrayList<SummaryView>> summ) {
+
+
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        Gson gson = new Gson();
+
+        String json = gson.toJson(info);
+
+        editor.putString("infos", json);
+
+        json = gson.toJson(summ);
+        editor.putString("summs", json);
+
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date();
+        String dateTime = dateFormat.format(date);
+
+        editor.putString("time",dateTime);
+        editor.commit();
+
+    }
+
+    public boolean retriveFromDB(){
+
+        boolean trigger = false;
+        Gson gson = new Gson();
+        String infoString = sharedPrefs.getString("infos", "");
+        String summString = sharedPrefs.getString("summs","");
+        if(infoString.equals("") || summString.equals("")){
+
+        }else{
+            trigger = true;
+            TypeToken<ArrayList<InformationView>> tokenInfo = new TypeToken<ArrayList<InformationView>>() {
+            };
+            infos = gson.fromJson(infoString, tokenInfo.getType());
+
+            TypeToken<ArrayList<ArrayList<SummaryView>>> tokenSumm = new TypeToken<ArrayList<ArrayList<SummaryView>>>() {
+            };
+            summs = gson.fromJson(summString, tokenSumm.getType());
+
+
+
+        }
+        return trigger;
+
+
+    }
+
+
+
 
 }

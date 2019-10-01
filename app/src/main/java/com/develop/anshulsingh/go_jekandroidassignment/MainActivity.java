@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -35,6 +37,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     ImageView ivNoInternet;
+    LinearLayout llWhenNoDataFetch;
     TextView tv1NoInternet,tv2NoInternet;
     Button btnNoInternet;
     ArrayList<InformationView> infos=new ArrayList<>();
@@ -53,17 +56,29 @@ public class MainActivity extends AppCompatActivity {
         tv1NoInternet = findViewById(R.id.tv1NoInternet);
         tv2NoInternet = findViewById(R.id.tv2NoInternet);
         btnNoInternet = findViewById(R.id.btnNoInternet);
-
+        llWhenNoDataFetch = findViewById(R.id.llWhenNoDataFetch);
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         UpdateFeed feed = new UpdateFeed();
         feed.execute();
-        if(isInternetAvailable()){
 
-        }else{
+
+        ConnectivityManager mgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = mgr.getActiveNetworkInfo();
+
+        if (netInfo != null) {
+            if (netInfo.isConnected()) {
+                // Internet Available
+            }else {
+                notAvailable();
+                //No internet
+            }
+        } else {
             notAvailable();
+            //No internet
         }
+
 
         btnNoInternet.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,21 +101,30 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
     public boolean isInternetAvailable() {
-        try {
-            InetAddress ipAddr = InetAddress.getByName("google.com");
-            //You can replace it with your name
-            return !ipAddr.equals("");
-
-        } catch (Exception e) {
+        ConnectivityManager mgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = mgr.getActiveNetworkInfo();
+        if (netInfo != null) {
+            if (netInfo.isConnected()) {
+                // Internet Available
+                return true;
+            }else {
+                notAvailable();
+                return false;
+            }
+        } else {
+            notAvailable();
             return false;
         }
+
+
+
     }
     public void notAvailable(){
-//        btnNoInternet.setVisibility(View.VISIBLE);
-//        tv2NoInternet.setVisibility(View.VISIBLE);
-//        tv1NoInternet.setVisibility(View.VISIBLE);
-//        ivNoInternet.setVisibility(View.VISIBLE);
-//        recyclerView.setVisibility(View.GONE);
+        btnNoInternet.setVisibility(View.VISIBLE);
+        tv2NoInternet.setVisibility(View.VISIBLE);
+        tv1NoInternet.setVisibility(View.VISIBLE);
+        ivNoInternet.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.GONE);
     }
     public void Available(){
         btnNoInternet.setVisibility(View.GONE);
@@ -146,6 +170,8 @@ public class MainActivity extends AppCompatActivity {
                                     summs.add(new ArrayList<SummaryView>());
                                     summs.get(i).add(new SummaryView(intro,lang,username,imageURL,stars,folks));
                                     infos.add(new InformationView(title,summs.get(i)));
+                                    llWhenNoDataFetch.setVisibility(View.GONE);
+                                    recyclerView.setVisibility(View.VISIBLE);
                                         SummaryAdapter adapter = new SummaryAdapter(infos);
                                         recyclerView.setAdapter(adapter);
                                     adapter.notifyDataSetChanged();

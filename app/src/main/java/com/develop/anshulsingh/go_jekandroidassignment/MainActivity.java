@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -42,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
     Button btnNoInternet;
     ArrayList<InformationView> infos=new ArrayList<>();
     ArrayList<ArrayList<SummaryView>> summs=new ArrayList<>();
+    private SwipeRefreshLayout swipeContainer;
+    SummaryAdapter adapter;
+    UpdateFeed feed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,11 +61,20 @@ public class MainActivity extends AppCompatActivity {
         tv2NoInternet = findViewById(R.id.tv2NoInternet);
         btnNoInternet = findViewById(R.id.btnNoInternet);
         llWhenNoDataFetch = findViewById(R.id.llWhenNoDataFetch);
+        swipeContainer = findViewById(R.id.swipeContainer);
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        UpdateFeed feed = new UpdateFeed();
+        feed = new UpdateFeed();
         feed.execute();
+
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+
+                fetchNew();
+            }
+        });
 
 
         ConnectivityManager mgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -172,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
                                     infos.add(new InformationView(title,summs.get(i)));
                                     llWhenNoDataFetch.setVisibility(View.GONE);
                                     recyclerView.setVisibility(View.VISIBLE);
-                                        SummaryAdapter adapter = new SummaryAdapter(infos);
+                                        adapter = new SummaryAdapter(infos);
                                         recyclerView.setAdapter(adapter);
                                     adapter.notifyDataSetChanged();
                                 }
@@ -181,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                             } catch (JSONException e) {
+                                notAvailable();
                                 Log.d("hey", String.valueOf(e));
                                 e.printStackTrace();
                             }
@@ -196,6 +210,16 @@ public class MainActivity extends AppCompatActivity {
             queue.add(stringRequest);
             return null;
         }
+    }
+
+    public void fetchNew() {
+
+        infos.clear();
+        summs.clear();
+        feed.doInBackground();
+        adapter.notifyDataSetChanged();
+
+        swipeContainer.setRefreshing(false);
     }
 
 }

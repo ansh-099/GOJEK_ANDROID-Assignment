@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+
     <androidx.appcompat.widget.Toolbar
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -27,6 +28,15 @@
         android:background="#e8e8e8"
         android:layout_width="match_parent"
         android:layout_height="1dp"/>
+
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/swipeContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -934,6 +944,7 @@
             android:layout_height="wrap_content" />
 
     </androidx.cardview.widget.CardView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 
 </LinearLayout>

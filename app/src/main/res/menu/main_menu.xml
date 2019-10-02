@@ -3,9 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menu_main_setting"
+        android:id="@+id/menu_sort_stars"
         android:orderInCategory="100"
         android:title="Sort by stars" />
+
+    <item
+        android:id="@+id/menu_sort_names"
+        android:orderInCategory="100"
+        android:title="Sort by name" />
 
 
 </menu>

@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -16,6 +17,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -82,11 +84,30 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         boolean trig = retriveFromDB();
-        
-        if(trig) {
+
+        String lastTime = sharedPrefs.getString("time", "");
+
+
+        if(trig && !lastTime.equals("")) {
             adapter = new SummaryAdapter(infos);
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
+            llWhenNoDataFetch.setVisibility(View.GONE);
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date today = new Date();
+                Date d = dateFormat.parse(lastTime);
+                long diff =  today.getTime() - d.getTime();
+                long minutes = (diff / (1000 * 60));
+                if(minutes > 180){
+                    feed = new UpdateFeed();
+                    feed.execute();
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
 
         }
 
@@ -100,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
                 fetchNew();
             }
         });
+
 
         if(!trig) {
             ConnectivityManager mgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -125,6 +147,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if(isInternetAvailable()){
                     Available();
+                    feed = new UpdateFeed();
+                    feed.execute();
 
                 }
             }
@@ -140,6 +164,20 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+
+        int id=item.getItemId();
+
+
+        return super.onOptionsItemSelected(item);
+
+
+    }
+
     public boolean isInternetAvailable() {
         ConnectivityManager mgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = mgr.getActiveNetworkInfo();
@@ -160,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void notAvailable(){
+        llWhenNoDataFetch.setVisibility(View.GONE);
         btnNoInternet.setVisibility(View.VISIBLE);
         tv2NoInternet.setVisibility(View.VISIBLE);
         tv1NoInternet.setVisibility(View.VISIBLE);
@@ -193,6 +232,8 @@ public class MainActivity extends AppCompatActivity {
 
                                 Log.d("hey","working");
                                 //Parser
+                                infos.clear();
+                                summs.clear();
                                 for(int i=0;i<array.length();i++){
                                     JSONObject obj = (JSONObject) array.get(i);
                                     String username = obj.getString("name");
@@ -218,9 +259,6 @@ public class MainActivity extends AppCompatActivity {
 
                                 storeInDB(infos,summs);
 
-
-
-
                             } catch (JSONException e) {
                                 notAvailable();
                                 Log.d("hey", String.valueOf(e));
@@ -242,8 +280,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void fetchNew() {
 
-        infos.clear();
-        summs.clear();
         feed.doInBackground();
         adapter.notifyDataSetChanged();
 

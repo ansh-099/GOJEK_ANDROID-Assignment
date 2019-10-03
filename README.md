@@ -81,7 +81,7 @@
 </br>
 </br>
 
-### When Internet Not Available :-
+### When Internet Not is Available :-
 
 </br>
 
